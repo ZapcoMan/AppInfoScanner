@@ -228,10 +228,30 @@ class iOSTask(object):
                         shutil.rmtree(old_ext_path)
 
     def __get_parse_dir__(self, output_path, file_path):
+        """
+        根据给定的文件路径和输出路径，获取解析后的目录路径。
+
+        该方法首先定位到文件路径中的 "Payload/" 目录和 ".app" 后缀的位置，
+        然后根据操作系统对路径进行相应的处理，最后拼接输出路径和处理后的路径，
+        返回解析后的目录路径。
+
+        参数:
+        output_path (str): 解析结果的输出路径。
+        file_path (str): 需要解析的文件的路径。
+
+        返回:
+        str: 解析后的目录路径。
+        """
+        # 定位到 "Payload/" 目录的起始位置
         start = file_path.index("Payload/")
+        # 定位到 ".app" 后缀的结束位置
         end = file_path.index(".app")
+        # 提取根目录路径
         root_dir = file_path[start:end]
+        # 如果是 Windows 系统，则将路径中的斜杠替换为反斜杠
         if platform.system() == "Windows":
             root_dir = root_dir.replace("/", "\\")
-        old_root_dir = os.path.join(output_path, root_dir+".app")
+        # 拼接输出路径和处理后的根目录路径
+        old_root_dir = os.path.join(output_path, root_dir + ".app")
+        # 返回解析后的目录路径
         return old_root_dir
