@@ -95,17 +95,34 @@ class iOSTask(object):
             return False
 
     def __shell_test__(self, macho_file, hex_hand):
+        """
+        检测给定的macho文件是否包含特定的加密信息，以判断是否具有特定的shell功能。
+
+        参数:
+        - macho_file: 文件对象，指向待检测的macho文件。
+        - hex_hand: int，文件内部的初始读取位置指针。
+
+        该方法通过读取和解析macho文件的特定部分，判断文件是否具有特定的加密标识，
+        从而确定文件是否包含shell功能。这一过程涉及对文件的二进制内容进行解析，并根据
+        解析结果更新类实例的属性。
+        """
         while True:
+            # 读取文件的前4字节并将其转换为十六进制字符串，用于判断文件类型
             magic = binascii.hexlify(macho_file.read(4)).decode().upper()
             if magic == "2C000000":
+                # 当文件类型匹配时，重置文件读取位置到指定的加密信息位置
                 macho_file.seek(hex_hand, 0)
+                # 读取并转换加密信息命令的24字节到十六进制字符串
                 encryption_info_command = binascii.hexlify(
                     macho_file.read(24)).decode()
+                # 提取加密信息命令的最后8个字符，用于判断加密标识
                 cryptid = encryption_info_command[-8:len(
                     encryption_info_command)]
                 if cryptid == "01000000":
+                    # 当加密标识匹配时，设置shell标志为True，表示文件包含shell功能
                     self.shell_flag = True
                 break
+            # 如果当前文件类型不匹配，移动文件读取位置指针，继续搜索
             hex_hand = hex_hand + 4
 
     def __scanner_file_by_ipa__(self, output):
