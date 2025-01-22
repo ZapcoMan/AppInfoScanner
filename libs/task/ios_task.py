@@ -182,6 +182,21 @@ class iOSTask(object):
                             self.file_queue.put(dir_file_path)
 
     def __decode_ipa__(self, output_path):
+        """
+        解压IPA文件到指定的输出路径。
+
+        该函数首先将IPA文件（实际上是一个zip文件）解压到输出路径中。
+        然后它会尝试根据文件名的编码问题进行处理，以确保文件名正确显示。
+        接着，函数会检查解压出来的文件，特别是位于"Payload"目录下的文件，
+        并根据需要对它们进行重命名和移动，以确保文件结构与预期一致。
+        最后，函数会清理解压过程中产生的临时目录，以保持文件系统的整洁。
+
+        参数:
+        output_path (str): IPA文件解压后的输出路径。
+
+        返回:
+        无
+        """
         with zipfile.ZipFile(self.path, "r") as zip_files:
             zip_file_names = zip_files.namelist()
             zip_files.extract(zip_file_names[0], output_path)
