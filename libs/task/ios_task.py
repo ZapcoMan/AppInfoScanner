@@ -54,17 +54,43 @@ class iOSTask(object):
         # 返回包含处理结果的字典
         return {"shell_flag": self.shell_flag, "file_queue": self.file_queue, "comp_list": [], "packagename": None, "file_identifier": self.file_identifier, "permissions": self.permissions}
     def __get_file_header__(self, file_path):
+        """
+        获取文件头信息并判断是否为Mach-O文件。
+
+        参数:
+        file_path (str): 文件路径。
+
+        返回:
+        bool: 如果文件是Mach-O格式，则返回True，否则返回False。
+        """
+        # 初始化文件头位置指针
         hex_hand = 0x0
+
+        # 提取文件名作为文件标识符
         macho_name = os.path.split(file_path)[-1]
         self.file_identifier.append(macho_name)
+
+        # 打开二进制文件以读取文件头信息
         with open(file_path, "rb") as macho_file:
+            # 移动文件读取指针到文件头
             macho_file.seek(hex_hand, 0)
+
+            # 读取并转换文件头4字节为十六进制表示
             magic = binascii.hexlify(macho_file.read(4)).decode().upper()
+
+            # 定义Mach-O文件的魔数列表
             macho_magics = ["CFFAEDFE", "CEFAEDFE", "BEBAFECA", "CAFEBABE"]
+
+            # 检查文件头魔数是否匹配Mach-O文件格式
             if magic in macho_magics:
+                # 如果是Mach-O文件，调用私有方法进行进一步处理
                 self.__shell_test__(macho_file, hex_hand)
+
+                # 关闭文件并返回True表示处理成功
                 macho_file.close()
                 return True
+
+            # 如果不是Mach-O文件，关闭文件并返回False
             macho_file.close()
             return False
 
