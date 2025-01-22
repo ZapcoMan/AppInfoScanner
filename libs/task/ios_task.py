@@ -126,8 +126,25 @@ class iOSTask(object):
             hex_hand = hex_hand + 4
 
     def __scanner_file_by_ipa__(self, output):
+        """
+        根据IPA文件扫描特定后缀的文件。
+
+        本函数关注于从IPA文件解压后的输出目录中，扫描特定后缀的文件。
+        这些文件可能包含敏感信息或需要进一步处理。
+
+        参数:
+        - output: 解压IPA文件后的输出目录路径。
+
+        返回:
+        无直接返回值。但通过调用`self.__get_scanner_file__`函数处理扫描结果。
+        """
+        # 定义需要扫描的文件后缀列表，这些文件类型可能包含需要分析的内容
         scanner_file_suffix = ["plist", "js", "xml", "html"]
+
+        # 构造扫描目录路径，"Payload"是IPA解压后包含应用数据的目录
         scanner_dir = os.path.join(output, "Payload")
+
+        # 调用内部函数处理具体的文件扫描逻辑
         self.__get_scanner_file__(scanner_dir, scanner_file_suffix)
 
     def __get_scanner_file__(self, scanner_dir, file_suffix):
