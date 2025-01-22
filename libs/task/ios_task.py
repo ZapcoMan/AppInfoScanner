@@ -23,17 +23,36 @@ class iOSTask(object):
         self.permissions = []
 
     def start(self):
-        file_path = self.path
-        if file_path.split(".")[-1] == 'ipa':
-            self.__decode_ipa__(cores.output_path)
-            self.__scanner_file_by_ipa__(cores.output_path)
-        elif self.__get_file_header__(file_path):
-            self.file_queue.put(file_path)
-        else:
-            raise Exception(
-                "Retrieval of this file type is not supported. Select IPA file or Mach-o file.")
-        return {"shell_flag": self.shell_flag, "file_queue": self.file_queue, "comp_list": [], "packagename": None, "file_identifier": self.file_identifier, "permissions": self.permissions}
+        """
+        启动文件处理流程。
 
+        本函数根据文件类型（ipa或Mach-o）来执行相应的处理流程。
+        它首先检查文件扩展名，然后根据文件内容或类型进行解码或扫描。
+
+        Returns:
+            dict: 包含处理结果的字典，包括shell_flag、file_queue等信息。
+        """
+        # 获取文件路径
+        file_path = self.path
+
+        # 判断文件是否为ipa文件
+        if file_path.split(".")[-1] == 'ipa':
+            # 对ipa文件进行解码
+            self.__decode_ipa__(cores.output_path)
+            # 扫描解码后的ipa文件
+            self.__scanner_file_by_ipa__(cores.output_path)
+        else:
+            # 判断文件是否为Mach-o文件
+            if self.__get_file_header__(file_path):
+                # 将文件路径放入文件队列中
+                self.file_queue.put(file_path)
+            else:
+                # 抛出异常，提示不支持的文件类型
+                raise Exception(
+                    "Retrieval of this file type is not supported. Select IPA file or Mach-o file.")
+
+        # 返回包含处理结果的字典
+        return {"shell_flag": self.shell_flag, "file_queue": self.file_queue, "comp_list": [], "packagename": None, "file_identifier": self.file_identifier, "permissions": self.permissions}
     def __get_file_header__(self, file_path):
         hex_hand = 0x0
         macho_name = os.path.split(file_path)[-1]
