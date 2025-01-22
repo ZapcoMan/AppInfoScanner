@@ -19,37 +19,55 @@ class NetThreads(threading.Thread):
         self.worksheet = worksheet
 
     def __get_Http_info__(self, threadLock):
+        """
+        获取HTTP信息并更新Excel工作表。
+
+        从域名队列中获取域名和URL IP，然后请求URL的信息。
+        如果请求成功且结果不为错误，则将信息写入Excel工作表中。
+
+        参数:
+        - threadLock: 线程锁，用于同步对共享资源的访问。
+
+        返回值:
+        无
+        """
         while True:
+            # 检查域名队列是否为空，如果为空则退出循环
             if self.domain_queue.empty():
                 break
+
+            # 从队列中获取域名信息，包括域名和URL IP
             domains = self.domain_queue.get(timeout=5)
             domain = domains["domain"]
             url_ip = domains["url_ip"]
+
+            # 短暂休眠，以模拟处理时间或减轻目标服务器的负担
             time.sleep(2)
+
+            # 发起HTTP请求并获取结果
             result = self.__get_request_result__(url_ip)
             print("[+] Processing URL address："+url_ip)
+
+            # 如果结果不为错误，则尝试获取线程锁以更新Excel工作表
+            # 检查结果是否为错误
             if result != "error":
+                # 尝试获取线程锁，以便安全地写入Excel
                 if self.lock.acquire(True):
+                    # 更新Excel行号并写入域名、URL IP等信息
                     cores.excel_row = cores.excel_row + 1
-                    self.worksheet.cell(row=cores.excel_row,
-                                        column=1, value=cores.excel_row-1)
-                    self.worksheet.cell(row=cores.excel_row,
-                                        column=2, value=url_ip)
-                    self.worksheet.cell(row=cores.excel_row,
-                                        column=3, value=domain)
+                    self.worksheet.cell(row=cores.excel_row, column=1, value=cores.excel_row-1)
+                    self.worksheet.cell(row=cores.excel_row, column=2, value=url_ip)
+                    self.worksheet.cell(row=cores.excel_row, column=3, value=domain)
 
+                    # 如果结果不是超时，则写入更多详细信息
                     if result != "timeout":
-                        self.worksheet.cell(
-                            row=cores.excel_row, column=4, value=result["status"])
-                        self.worksheet.cell(
-                            row=cores.excel_row, column=5, value=result["des_ip"])
-                        self.worksheet.cell(
-                            row=cores.excel_row, column=6, value=result["server"])
-                        self.worksheet.cell(
-                            row=cores.excel_row, column=7, value=result["title"])
-                        self.worksheet.cell(
-                            row=cores.excel_row, column=8, value=result["cdn"])
+                        self.worksheet.cell(row=cores.excel_row, column=4, value=result["status"])
+                        self.worksheet.cell(row=cores.excel_row, column=5, value=result["des_ip"])
+                        self.worksheet.cell(row=cores.excel_row, column=6, value=result["server"])
+                        self.worksheet.cell(row=cores.excel_row, column=7, value=result["title"])
+                        self.worksheet.cell(row=cores.excel_row, column=8, value=result["cdn"])
 
+                    # 释放线程锁，允许其他线程进行写入操作
                     self.lock.release()
 
     class SomeClass:
