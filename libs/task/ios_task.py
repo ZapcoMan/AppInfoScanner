@@ -148,21 +148,35 @@ class iOSTask(object):
         self.__get_scanner_file__(scanner_dir, scanner_file_suffix)
 
     def __get_scanner_file__(self, scanner_dir, file_suffix):
+        """
+        递归获取指定目录下的特定后缀文件。
+
+        :param scanner_dir: 需要扫描的目录路径
+        :param file_suffix: 需要获取的文件后缀名列表
+        """
+        # 获取目录下的所有文件和子目录
         dir_or_files = os.listdir(scanner_dir)
         for dir_file in dir_or_files:
+            # 构造完整的文件或目录路径
             dir_file_path = os.path.join(scanner_dir, dir_file)
+            # 如果是目录，则递归调用自身
             if os.path.isdir(dir_file_path):
+                # 如果目录名以.app结尾，提取 ELF 文件名
                 if dir_file.endswith(".app"):
                     self.elf_file_name = dir_file.replace(".app", "")
                 self.__get_scanner_file__(dir_file_path, file_suffix)
             else:
+                # 如果文件名与ELF文件名相同，获取文件头信息并加入处理队列
                 if self.elf_file_name == dir_file:
                     self.__get_file_header__(dir_file_path)
                     self.file_queue.put(dir_file_path)
                     continue
+                # 如果资源标志为真，对文件后缀进行处理
                 if cores.resource_flag:
                     dir_file_suffix = dir_file.split(".")
+                    # 对有后缀的文件进行判断
                     if len(dir_file_suffix) > 1:
+                        # 如果文件后缀在指定的后缀列表中，获取文件头信息并加入处理队列
                         if dir_file_suffix[-1] in file_suffix:
                             self.__get_file_header__(dir_file_path)
                             self.file_queue.put(dir_file_path)
